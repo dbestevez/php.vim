@@ -510,18 +510,19 @@ endif
 syntax keyword phpClasses containedin=ALLBUT,phpComment,phpDocComment,phpStringDouble,phpStringSingle,phpIdentifier,phpMethodsVar
 
 " Control Structures
-syn keyword phpKeyword echo continue case default break return goto as endif endwhile endfor endforeach endswitch declare endeclare print new clone yield contained
+syn keyword phpKeyword interface echo continue case default break return goto endif endwhile endfor endforeach endswitch declare endeclare print clone yield contained
 " Only create keyword groupings for these if not doing folding, otherwise they take precedence over the regions
 " used for folding.
 if php_folding != 1
-  syn keyword phpKeyword if else elseif while do for foreach function switch contained
+  syn keyword phpConditional if else elseif switch contained
+  syn keyword phpRepeat while do for foreach contained
 
   " Exception Keywords
-  syn keyword phpKeyword try catch finally throw contained
+  syn keyword phpException try catch finally throw contained
 endif
 
 " Class Keywords
-syn keyword phpType class abstract extends interface implements static final var public private protected const trait contained
+syn keyword phpType class abstract static final var public private protected const trait contained
 
 " Magic Methods
 syn keyword phpStatement __construct __destruct __call __callStatic __get __set __isset __unset __sleep __wakeup __toString __invoke __set_state __clone contained
@@ -557,6 +558,9 @@ syn match  phpIdentifier         "$\h\w*"  contained contains=phpSuperglobals,ph
 syn match  phpIdentifierSimply   "${\h\w*}"  contains=phpOperator,phpParent  contained display
 syn region phpIdentifierComplex  matchgroup=phpParent start="{\$"rs=e-1 end="}"  contains=phpIdentifier,phpMemberSelector,phpVarSelector,phpIdentifierArray contained extend
 syn region phpIdentifierArray    matchgroup=phpParent start="\[" end="]" contains=@phpClInside contained
+
+" Null
+syn keyword phpNull null contained
 
 " Boolean
 syn keyword phpBoolean true false  contained
@@ -689,6 +693,11 @@ endif
 " Static classes
 syn match phpStaticClasses "\v\h\w+(::)@=" contained display
 
+" Class instance
+syn keyword phpNew new contained
+      \ nextGroup=phpNewObject
+syn match phpNewObject /\(\\\|\h\w*\)*\h\w*/ contained contains=phpClassNamespaceSeparator
+
 " Class name
 syn keyword phpKeyword class contained
       \ nextgroup=phpClass skipwhite skipempty
@@ -697,12 +706,12 @@ syn match phpClass /\h\w*/ contained
 syn match phpClassNamespaceSeparator "\\" contained display
 
 " Class extends
-syn keyword phpKeyword extends contained
+syn keyword phpExtends extends contained
       \ nextgroup=phpClassExtends skipwhite skipempty
 syn match phpClassExtends /\(\\\|\h\w*\)*\h\w*/ contained contains=phpClassNamespaceSeparator
 
 " Class implements
-syntax keyword phpKeyword implements contained
+syntax keyword phpImplements implements contained
       \ nextgroup=phpClassImplements skipwhite skipempty
 syntax match phpClassImplements contained contains=phpClassNamespaceSeparator
       \ nextgroup=phpClassDelimiter skipwhite skipempty /\(\\\|\h\w*\)*\h\w*/
@@ -711,7 +720,7 @@ syntax match phpClassDelimiter contained
 
 " use statement
 syn match phpUseNamespaceSeparator "\\" contained display
-syn keyword phpInclude use contained
+syn keyword phpInclude use as contained
       \ nextgroup=phpUseFunction,phpUseClass skipwhite skipempty
 syn match phpUseFunction /function\_s\+\(\\\|\h\w*\)*\h\w*/ contained contains=phpUseKeyword
       \ nextgroup=phpUseAlias skipwhite skipempty
@@ -726,9 +735,9 @@ syn keyword phpKeyword function contained
 syn match phpFunction /\h\w*/ contained
 
 " Clusters
-syn cluster phpClConst contains=phpFunctions,phpClasses,phpStaticClasses,phpIdentifier,phpStatement,phpKeyword,phpOperator,phpSplatOperator,phpStringSingle,phpStringDouble,phpBacktick,phpNumber,phpType,phpBoolean,phpStructure,phpMethodsVar,phpConstants,phpException,phpSuperglobals,phpMagicConstants,phpServerVars
+syn cluster phpClConst contains=phpFunctions,phpClasses,phpStaticClasses,phpIdentifier,phpStatement,phpNew,phpNewObject,phpKeyword,phpConditional,phpRepeat,phpOperator,phpSplatOperator,phpStringSingle,phpStringDouble,phpBacktick,phpNumber,phpType,phpExtends,phpImplements,phpBoolean,phpNull,phpStructure,phpMethodsVar,phpConstants,phpException,phpSuperglobals,phpMagicConstants,phpServerVars
 syn cluster phpClInside contains=@phpClConst,phpComment,phpDocComment,phpParent,phpParentError,phpInclude,phpHereDoc,phpNowDoc
-syn cluster phpClFunction contains=@phpClInside,phpDefine,phpParentError,phpStorageClass,phpKeyword
+syn cluster phpClFunction contains=@phpClInside,phpDefine,phpParentError,phpStorageClass,phpNew,phpNewObject,phpKeyword,phpConditional,phpRepeat
 syn cluster phpClControl contains=phpFoldIfContainer,phpFoldWhile,phpFoldDoWhile,phpFoldFor,phpFoldForeach,phpFoldTryContainer,phpFoldSwitch
 syn cluster phpClTop contains=@phpClFunction,@phpClControl,phpFoldFunction,phpFoldClass,phpFoldInterface,phpFoldHtmlInside
 
@@ -812,6 +821,7 @@ if !exists("did_php_syn_inits")
   hi def link phpServerVars       Constant
   hi def link phpConstants        Constant
   hi def link phpBoolean          Boolean
+  hi def link phpNull             Number
   hi def link phpNumber           Number
   hi def link phpStringSingle     String
   hi def link phpStringDouble     String
@@ -830,7 +840,10 @@ if !exists("did_php_syn_inits")
   hi def link phpOperator         Operator
   hi def link phpMemberSelector   Operator
   hi def link phpInclude          PreProc
+  hi def link phpUseKeyword       PreProc
   hi def link phpDefine           PreProc
+  hi def link phpConditional      Conditional
+  hi def link phpRepeat           Repeat
   hi def link phpKeyword          Keyword
   hi def link phpSuperglobals     Type
   hi def link phpType             Type
